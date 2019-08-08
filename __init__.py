@@ -61,14 +61,27 @@ class MySettings(PropertyGroup):
 		description="Use (1.0 / [block size]) as actual size",
 		default=False
 		)
-
-
+	
+	frame_start : IntProperty(
+		name="Start frame",
+		description="The frame to start the bake from",
+		default=0
+		)
+	
+	frame_end : IntProperty(
+		name="End frame",
+		description="The frame to end the bake at",
+		default=250
+		)
 
 from . op import BlockifyOperator
 from . panel import BlockifyPanel
 
+frame = 0
+
 def register():
 	print("register")
+	frame = 0
 	bpy.utils.register_class(BlockifyOperator)
 	bpy.utils.register_class(BlockifyPanel)
 	bpy.utils.register_class(MySettings)
@@ -81,11 +94,15 @@ def unregister():
 	del bpy.types.Scene.blockify
 
 def my_handler(scene):
-	print("Frame Change", scene.frame_current)
+	global frame
+	if frame != scene.frame_current:
+		frame = scene.frame_current
+		print("Frame Change", scene.frame_current)
 
-if len(bpy.app.handlers.frame_change_post) > 0:
-	bpy.app.handlers.frame_change_post.clear()
+if len(bpy.app.handlers.frame_change_pre) > 0:
+	bpy.app.handlers.frame_change_pre.clear()
 bpy.app.handlers.frame_change_pre.append(my_handler)
 
 if __name__ == "__main__":
 	register()
+	frame = 420

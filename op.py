@@ -4,7 +4,7 @@ import bmesh
 from threading import Thread
 from mathutils import Vector
 
-from . blocki import blockify
+from . blocki import Blockify
 
 class BlockifyOperator(bpy.types.Operator):
 	bl_idname = "view3d.blockify"
@@ -25,8 +25,17 @@ class BlockifyOperator(bpy.types.Operator):
 		blockSize = Vector(mytool.block_size)
 
 		if div:
+			#writeGridFile("grid.fwd", [[[1], [2]], [[3], [4]]])
 			blockSize = Vector((1/blockSize.x,1/blockSize.y,1/blockSize.z))
 
-		blockify(blockSize=blockSize, precision=precision)
-		self.report({'INFO'}, "Done current frame")
+			grid = Blockify.compute_grid(context.evaluated_depsgraph_get().objects["Src"]) # HARDCODED
+			Blockify.write_grid_file("grid.fwd", grid)
+		else:
+			#readGridFile("grid.fwd")
+			grid = Blockify.read_grid_file("grid.fwd")
+			Blockify.create_mesh(grid, context.object.data)
+			context.evaluated_depsgraph_get().update()
+        
+		#blockify(blockSize=blockSize, precision=precision)
+		#self.report({'INFO'}, "Done current frame")
 		return {"FINISHED"}

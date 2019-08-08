@@ -19,8 +19,3 @@ class BlockifyPanel(bpy.types.Panel):
 		layout.prop(mytool, "precision", text="Precision")
 
 		layout.operator("view3d.blockify", text="Blockify selected object")
-
-		# if (mytool.my_bool == True):
-		# 	print ("Property Enabled")
-		# else:
-		# 	print ("Property Disabled")
