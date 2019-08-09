@@ -5,381 +5,248 @@ import os
 from threading import Thread
 from mathutils import Vector
 
+
 class BlockGrid:
-	def __init__(self, data, block_size, bounds_min):
-		self.data = data
-		self.block_size = block_size
-		self.bounds_min = bounds_min
+    def __init__(self, data, block_size, bounds_min):
+        self.data = data
+        self.block_size = block_size
+        self.bounds_min = bounds_min
+
 
 class BlockifIO:
-	cache_path = "/cache"
+    cache_path = "/cache"
 
-	@staticmethod
-	def vector_write(v):
-		return f"{v.x},{v.y},{v.z}"
-	
-	@staticmethod
-	def vector_read(s):
-		return Vector([float(i) for i in s.split(',')])
+    @staticmethod
+    def vector_write(v):
+        return f"{v.x},{v.y},{v.z}"
 
-	@staticmethod
-	def is_frame_cached(frame):
-		return 
+    @staticmethod
+    def vector_read(s):
+        return Vector([float(i) for i in s.split(',')])
+
+    @staticmethod
+    def is_frame_cached(frame):
+        return True  # todo
+
 
 class Blockify:
 
-	# grid file:
-	# - grid size
-	# - grid data
-	# - block size
-	# - boundsMin (& boundsMax)
+    # grid file:
+    # - grid size
+    # - grid data
+    # - block size
+    # - boundsMin (& boundsMax)
 
-	
-	@staticmethod
-	def write_grid_file(path, grid): # save grid
-		print("saving...")
-		with open(path, "w+") as file:
-			file.write(BlockifIO.vector_write(grid.block_size) + "\n")
-			file.write(BlockifIO.vector_write(grid.bounds_min) + "\n")
-			file.write(f"{len(grid.data)},")
-			file.write(f"{len(grid.data[0])},")
-			file.write(f"{len(grid.data[0][0])}\n")
-			for x in grid.data:
-				for y in x:
-					for z in y:
-						#print(z)
-						file.write(str(z) + ",")
-			file.write("420")
-			print("saved to " + os.path.realpath(file.name))
+    @staticmethod
+    def write_grid_file(path, grid):
+        print("saving...")
+        with open(path, "w+") as file:
+            file.write(BlockifIO.vector_write(grid.block_size) + "\n")
+            file.write(BlockifIO.vector_write(grid.bounds_min) + "\n")
+            file.write(f"{len(grid.data)},")
+            file.write(f"{len(grid.data[0])},")
+            file.write(f"{len(grid.data[0][0])}\n")
+            for x in grid.data:
+                for y in x:
+                    for z in y:
+                        file.write(str(z) + ",")
+            file.write("420")
+            print("saved to " + os.path.realpath(file.name))
 
-	@staticmethod
-	def read_grid_file(path):
-		with open(path, "r") as file:
-			block_size = BlockifIO.vector_read(file.readline().rstrip())
-			bounds_min = BlockifIO.vector_read(file.readline().rstrip())
-			size = [int(i) for i in file.readline().rstrip().split(',')]
-			grid = []
-			
-			readData = [int(i) for i in file.readline().rstrip().split(',')]
+    @staticmethod
+    def read_grid_file(path):
+        with open(path, "r") as file:
+            block_size = BlockifIO.vector_read(file.readline().rstrip())
+            bounds_min = BlockifIO.vector_read(file.readline().rstrip())
+            size = [int(i) for i in file.readline().rstrip().split(',')]
+            grid = []
 
-			x = 0
-			while x < size[0]:
-				y = 0
-				grid.append([])
-				while y < size[1]:
-					z = 0
-					grid[x].append([])
-					while z < size[2]:
-						#print(str(3 + x * sizeZ * sizeY + y * sizeZ + z))
-						#print(x,y,z)
-						grid[x][y].append(readData[x * size[1] * size[2] + y * size[2] + z])
-						z = z+1
-					y= y+1
-				x = x+1
-			
-			return BlockGrid(grid, block_size, bounds_min)
+            readData = [int(i) for i in file.readline().rstrip().split(',')]
 
-	@staticmethod
-	def compute_grid(deps_obj, block_size = Vector((1,1,1)), precision = 0):
-		C = bpy.context
-		D = bpy.data
+            x = 0
+            while x < size[0]:
+                y = 0
+                grid.append([])
+                while y < size[1]:
+                    z = 0
+                    grid[x].append([])
+                    while z < size[2]:
+                        # print(str(3 + x * sizeZ * sizeY + y * sizeZ + z))
+                        # print(x,y,z)
+                        grid[x][y].append(
+                            readData[x * size[1] * size[2] + y * size[2] + z]
+                        )
+                        z = z+1
+                    y = y+1
+                x = x+1
 
-		deps = C.evaluated_depsgraph_get()
+            return BlockGrid(grid, block_size, bounds_min)
 
-		bs = block_size / 2
-		bounds_min = Vector(deps_obj.bound_box[0]) + bs
-		bounds_max = Vector(deps_obj.bound_box[6]) - bs
-		#print(boundsMin)
-		#print(boundsMax)
-		bounds = (bounds_max - bounds_min)
-		bounds = Vector((bounds.x / block_size.x, bounds.y / block_size.y, bounds.z / block_size.z))
+    @staticmethod
+    def compute_grid(deps_obj, block_size=Vector((1, 1, 1)), precision=0):
+        C = bpy.context
+        D = bpy.data
 
-		#print("grid size: " + str(bounds))
+        deps = C.evaluated_depsgraph_get()
 
-		### create voxel grid
+        bs = block_size / 2
+        bounds_min = Vector(deps_obj.bound_box[0]) + bs
+        bounds_max = Vector(deps_obj.bound_box[6]) - bs
+        bounds = (bounds_max - bounds_min)
+        bounds = Vector((
+            bounds.x / block_size.x,
+            bounds.y / block_size.y,
+            bounds.z / block_size.z
+        ))
 
-		print("Creating voxel grid...")
+        # create voxel grid
 
-		grid = []
+        print("Creating voxel grid...")
 
-		x = 0
-		while x <= bounds.x:
-			grid.append([])
-			y = 0
-			while y <= bounds.y:
-				grid[x].append([])
-				z = 0
-				while z <= bounds.z:
-					grid[x][y].append(0)
-					#print("added " + str(x) + "," + str(y) + "," + str(z))
-					z = z+1
-				y = y+1
-			x = x+1
+        grid = []
 
-		### subdivide mesh
+        x = 0
+        while x <= bounds.x:
+            grid.append([])
+            y = 0
+            while y <= bounds.y:
+                grid[x].append([])
+                z = 0
+                while z <= bounds.z:
+                    grid[x][y].append(0)
+                    # print("added " + str(x) + "," + str(y) + "," + str(z))
+                    z = z+1
+                y = y+1
+            x = x+1
 
-		srcObj = deps_obj.original
-		bm = bmesh.new()
-		bm.from_object(srcObj, deps)
+        # subdivide mesh
 
-		if precision > 0:
-			print("Subdiving source mesh...")
-			bmesh.ops.subdivide_edges(bm, edges=bm.edges, cuts=precision, use_grid_fill=True)
+        srcObj = deps_obj.original
+        bm = bmesh.new()
+        bm.from_object(srcObj, deps)
 
-		### calculate affected blocks
+        if precision > 0:
+            print("Subdiving source mesh...")
+            bmesh.ops.subdivide_edges(bm, edges=bm.edges, cuts=precision,
+                                      use_grid_fill=True)
 
-		print("Calculating affected blocks...")
+        # calculate affected blocks
 
-		def fint(value, b):
-			return int(min(bounds[b], round(value)))
+        print("Calculating affected blocks...")
 
-		max = 0
+        def fint(value, b):
+            return int(min(bounds[b], round(value)))
 
-		for v in bm.verts:
-			g = v.co - bounds_min
-			g = Vector((g.x / block_size.x, g.y / block_size.y, g.z / block_size.z))
-			#print(str(g.y))
-			#print(fint(g.y, 0))
-			gv = grid[fint(g.x, 0)][fint(g.y, 1)][fint(g.z, 2)] + 1
-			grid[fint(g.x, 0)][fint(g.y, 1)][fint(g.z, 2)] = gv
-			if gv > max:
-				max = gv
-		
-		bm.free()
-		return BlockGrid(grid, block_size, bounds_min)
+        max = 0
 
-	@staticmethod
-	def create_mesh(grid, mesh):
-		bm = bmesh.new()
+        for v in bm.verts:
+            g = v.co - bounds_min
+            g = Vector((
+                g.x / block_size.x,
+                g.y / block_size.y,
+                g.z / block_size.z
+            ))
+            gv = grid[fint(g.x, 0)][fint(g.y, 1)][fint(g.z, 2)] + 1
+            grid[fint(g.x, 0)][fint(g.y, 1)][fint(g.z, 2)] = gv
+            if gv > max:
+                max = gv
 
-		bounds = Vector((len(grid.data), len(grid.data[0]), len(grid.data[0][0])))
+        bm.free()
+        return BlockGrid(grid, block_size, bounds_min)
 
-		def add(off, v1, v2):
-			return bm.faces.new([
-				bm.verts.new(off-v1-v2),
-				bm.verts.new(off+v1-v2),
-				bm.verts.new(off+v1+v2),
-				bm.verts.new(off-v1+v2),
-			])
-		def u1(face, i1, i2, b1, b2):
-			off = Vector((i1 * b1 % 1.0, i2 * b2 % 1.0))
-			face.loops[0][uv].uv = off+Vector((b1,0))
-			face.loops[1][uv].uv = off+Vector((b1,b2))
-			face.loops[2][uv].uv = off+Vector((0,b2))
-			face.loops[3][uv].uv = off+Vector((0,0))
-		def u2(face, i1, i2, b1, b2):
-			off = Vector((i1 * b1 % 1.0, i2 * b2 % 1.0))
-			face.loops[0][uv].uv = off+Vector((0,0))
-			face.loops[1][uv].uv = off+Vector((b1,0))
-			face.loops[2][uv].uv = off+Vector((b1,b2))
-			face.loops[3][uv].uv = off+Vector((0,b2))
+    @staticmethod
+    def create_mesh(grid, mesh):
+        bm = bmesh.new()
 
-		### create blockified mesh
+        bounds = Vector((
+            len(grid.data),
+            len(grid.data[0]),
+            len(grid.data[0][0])
+        ))
 
-		print("Creating blockified mesh...")
+        def add(off, v1, v2):
+            return bm.faces.new([
+                bm.verts.new(off-v1-v2),
+                bm.verts.new(off+v1-v2),
+                bm.verts.new(off+v1+v2),
+                bm.verts.new(off-v1+v2),
+            ])
 
-		def e(dx,dy,dz): # e ~ "empty?"
-			# check if in bounds
-			if dx < 0 or dy < 0 or dz < 0 or dx >= bounds.x or dy >= bounds.y or dz >= bounds.z:
-				return True
-			return grid.data[dx][dy][dz] <= threshold
+        def u1(face, i1, i2, b1, b2):
+            off = Vector((i1 * b1 % 1.0, i2 * b2 % 1.0))
+            face.loops[0][uv].uv = off+Vector((b1, 0))
+            face.loops[1][uv].uv = off+Vector((b1, b2))
+            face.loops[2][uv].uv = off+Vector((0, b2))
+            face.loops[3][uv].uv = off+Vector((0, 0))
 
-		bs = grid.block_size / 2
-		# helpers
-		vx = Vector((bs.x, 0, 0))
-		vy = Vector((0, bs.y, 0))
-		vz = Vector((0, 0, bs.z))
+        def u2(face, i1, i2, b1, b2):
+            off = Vector((i1 * b1 % 1.0, i2 * b2 % 1.0))
+            face.loops[0][uv].uv = off+Vector((0, 0))
+            face.loops[1][uv].uv = off+Vector((b1, 0))
+            face.loops[2][uv].uv = off+Vector((b1, b2))
+            face.loops[3][uv].uv = off+Vector((0, b2))
 
-		uv = bm.loops.layers.uv.verify()
+        # create blockified mesh
 
-		threshold = 0
+        print("Creating blockified mesh...")
 
-		bs = grid.block_size
+        def e(dx, dy, dz):  # e ~ "empty?"
+            # check if in bounds
+            if (
+                dx < 0 or dy < 0 or dz < 0 or
+                dx >= bounds.x or dy >= bounds.y or dz >= bounds.z
+            ):
+                return True
+            return grid.data[dx][dy][dz] <= threshold
 
-		x = 0
-		while x < bounds.x:
-			y = 0
-			while y < bounds.y:
-				z = 0
-				while z < bounds.z:
-					if grid.data[x][y][z] > threshold:
-						v = Vector((x * bs.x, y * bs.y, z * bs.z)) + grid.bounds_min
-						if e(x+1,y,z):
-							u2(add(v+vx, vy, vz), y, z, bs.y, bs.z)
-						if e(x-1,y,z):
-							u1(add(v-vx, vz, vy), y, z, bs.y, bs.z)
-						
-						if e(x,y+1,z):
-							u1(add(v+vy, vz, vx), x, z, bs.x, bs.z)
-						if e(x,y-1,z):
-							u2(add(v-vy, vx, vz), x, z, bs.x, bs.z)
-						
-						if e(x,y,z+1):
-							u2(add(v+vz, vx, vy), x, y, bs.x, bs.y)
-						if e(x,y,z-1):
-							u1(add(v-vz, vy, vx), x, y, bs.x, bs.y)
-					z = z+1
-				y = y+1
-			x = x+1
-			#print("Progress: " + str(x / bounds.x))
+        bs = grid.block_size / 2
+        # helpers
+        vx = Vector((bs.x, 0, 0))
+        vy = Vector((0, bs.y, 0))
+        vz = Vector((0, 0, bs.z))
 
-		print("Removing doubles...")
+        uv = bm.loops.layers.uv.verify()
 
-		bmesh.ops.remove_doubles(bm, verts = bm.verts, dist = min(bs) / 2)
+        threshold = 0
 
-		bm.to_mesh(mesh)
-		bm.free()
-		print("so guys, we did it")
+        bs = grid.block_size
 
-	def blockify(blockSize = Vector((1,1,1)), precision=0):
-		C = bpy.context
-		D = bpy.data
+        x = 0
+        while x < bounds.x:
+            y = 0
+            while y < bounds.y:
+                z = 0
+                while z < bounds.z:
+                    if grid.data[x][y][z] > threshold:
+                        v = Vector((
+                            x * bs.x,
+                            y * bs.y,
+                            z * bs.z
+                        )) + grid.bounds_min
 
-		deps = C.evaluated_depsgraph_get()
+                        if e(x+1, y, z):
+                            u2(add(v+vx, vy, vz), y, z, bs.y, bs.z)
+                        if e(x-1, y, z):
+                            u1(add(v-vx, vz, vy), y, z, bs.y, bs.z)
 
-		obj = deps.objects["Src"] # HARDCODED
+                        if e(x, y+1, z):
+                            u1(add(v+vy, vz, vx), x, z, bs.x, bs.z)
+                        if e(x, y-1, z):
+                            u2(add(v-vy, vx, vz), x, z, bs.x, bs.z)
 
-		bs = blockSize / 2
-		boundsMin = Vector(obj.bound_box[0]) + bs
-		boundsMax = Vector(obj.bound_box[6]) - bs
-		#print(boundsMin)
-		#print(boundsMax)
-		bounds = (boundsMax - boundsMin)
-		bounds = Vector((bounds.x / blockSize.x, bounds.y / blockSize.y, bounds.z / blockSize.z))
+                        if e(x, y, z+1):
+                            u2(add(v+vz, vx, vy), x, y, bs.x, bs.y)
+                        if e(x, y, z-1):
+                            u1(add(v-vz, vy, vx), x, y, bs.x, bs.y)
+                    z = z+1
+                y = y+1
+            x = x+1
+            # print("Progress: " + str(x / bounds.x))
 
-		#print("grid size: " + str(bounds))
+        print("Removing doubles...")
 
-		### create voxel grid
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=min(bs)/2)
 
-		print("Creating voxel grid...")
-
-		grid = []
-
-		x = 0
-		while x <= bounds.x:
-			grid.append([])
-			y = 0
-			while y <= bounds.y:
-				grid[x].append([])
-				z = 0
-				while z <= bounds.z:
-					grid[x][y].append(0)
-					#print("added " + str(x) + "," + str(y) + "," + str(z))
-					z = z+1
-				y = y+1
-			x = x+1
-
-		### subdivide mesh
-
-		srcObj = D.objects["Src"] # HARDCODED!!!
-		bm = bmesh.new()
-		bm.from_object(srcObj, deps)
-		print("Subdiving source mesh...")
-		bmesh.ops.subdivide_edges(bm, edges=bm.edges, cuts=precision, use_grid_fill=True)
-
-		### calculate affected blocks
-
-		print("Calculating affected blocks...")
-
-		def fint(value, b):
-			return int(min(bounds[b], round(value)))
-		
-		def add(bm, off, v1, v2):
-			return bm.faces.new([
-				bm.verts.new(off-v1-v2),
-				bm.verts.new(off+v1-v2),
-				bm.verts.new(off+v1+v2),
-				bm.verts.new(off-v1+v2),
-			])
-		def u1(uv, face, i1, i2, b1, b2):
-			off = Vector((i1 * b1 % 1.0, i2 * b2 % 1.0))
-			face.loops[0][uv].uv = off+Vector((b1,0))
-			face.loops[1][uv].uv = off+Vector((b1,b2))
-			face.loops[2][uv].uv = off+Vector((0,b2))
-			face.loops[3][uv].uv = off+Vector((0,0))
-		def u2(uv, face, i1, i2, b1, b2):
-			off = Vector((i1 * b1 % 1.0, i2 * b2 % 1.0))
-			face.loops[0][uv].uv = off+Vector((0,0))
-			face.loops[1][uv].uv = off+Vector((b1,0))
-			face.loops[2][uv].uv = off+Vector((b1,b2))
-			face.loops[3][uv].uv = off+Vector((0,b2))
-
-		max = 0
-
-		for v in bm.verts:
-			g = v.co - boundsMin
-			g = Vector((g.x / blockSize.x, g.y / blockSize.y, g.z / blockSize.z))
-			#print(str(g.y))
-			#print(fint(g.y, 0))
-			gv = grid[fint(g.x, 0)][fint(g.y, 1)][fint(g.z, 2)] + 1
-			grid[fint(g.x, 0)][fint(g.y, 1)][fint(g.z, 2)] = gv
-			if gv > max:
-				max = gv
-
-		#print("max: " + str(max))
-		threshold = 0
-
-		### create blockified mesh
-
-		print("Creating blockified mesh...")
-
-		bm.clear()
-
-		def e(dx,dy,dz): # e ~ "empty?"
-			# check if in bounds
-			if dx < 0 or dy < 0 or dz < 0 or dx > bounds.x or dy > bounds.y or dz > bounds.z:
-				return True
-			return grid[dx][dy][dz] <= threshold
-
-		# bs = blockSize / 2
-		# helper
-		vx = Vector((bs.x, 0, 0))
-		vy = Vector((0, bs.y, 0))
-		vz = Vector((0, 0, bs.z))
-
-		uv = bm.loops.layers.uv.verify()
-		u = blockSize # uv size
-
-
-		x = 0
-		while x <= bounds.x:
-			y = 0
-			while y <= bounds.y:
-				z = 0
-				while z <= bounds.z:
-					if grid[x][y][z] > threshold:
-						bs = blockSize
-						v = Vector((x * bs.x, y * bs.y, z * bs.z)) + boundsMin
-						bs = blockSize
-						if e(x+1,y,z):
-							#u2(add(v+vx, vy, vz))
-							u2(uv, add(bm, v+vx, vy, vz), y, z, bs.y, bs.z)
-						if e(x-1,y,z):
-							u1(uv, add(bm, v-vx, vz, vy), y, z, bs.y, bs.z)
-						
-						if e(x,y+1,z):
-							u1(uv, add(bm, v+vy, vz, vx), x, z, bs.x, bs.z)
-						if e(x,y-1,z):
-							u2(uv, add(bm, v-vy, vx, vz), x, z, bs.x, bs.z)
-						
-						if e(x,y,z+1):
-							u2(uv, add(bm, v+vz, vx, vy), x, y, bs.x, bs.y)
-						if e(x,y,z-1):
-							u1(uv, add(bm, v-vz, vy, vx), x, y, bs.x, bs.y)
-					z = z+1
-				y = y+1
-			x = x+1
-			#print("Progress: " + str(x / bounds.x))
-
-		print("Removing doubles...")
-
-		bmesh.ops.remove_doubles(bm, verts = bm.verts, dist = min(blockSize) / 2)
-
-		#TODO: create new mesh
-		#D.meshes.new
-		bm.to_mesh(D.meshes["kapow"])
-		bm.free()
-
-		obj.original.data = D.meshes["kapow"]
-
-		print("so guys, we did it")
+        bm.to_mesh(mesh)
+        bm.free()
+        print("so guys, we did it")
