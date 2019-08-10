@@ -47,36 +47,59 @@ bl_info = {
 
 
 class MySettings(PropertyGroup):
-    block_size = FloatVectorProperty(
+    block_size: FloatVectorProperty(
         name="Block size",
         description="Configure the block size",
         default=Vector((1, 1, 1))
     )
 
-    precision = IntProperty(
+    precision: IntProperty(
         name="Precision",
-        description="Amount of pre-subdivisions",
+        description="""
+            Amount of pre-subdivisions.
+            Increase this value if you happen to find holes
+            in the blockified mesh
+        """,
         default=0,
         min=0,
         max=10
     )
 
-    divide_by_vector = BoolProperty(
+    divide_by_vector: BoolProperty(
         name="Divide by vector",
         description="Use (1.0 / [block size]) as actual size",
         default=False
     )
 
-    frame_start = IntProperty(
+    cache_path: StringProperty(
+        name="Cache path",
+        description="",
+        default="/cache",
+        subtype='DIR_PATH'
+    )
+
+    frame_start: IntProperty(
         name="Start frame",
         description="The frame to start the bake from",
         default=0
     )
 
-    frame_end = IntProperty(
+    frame_end: IntProperty(
         name="End frame",
         description="The frame to end the bake at",
         default=250
+    )
+
+    destination_mesh: PointerProperty(
+        name="lol",
+        description="later",
+        type=bpy.types.Mesh
+    )
+
+    overwrite_destination_mesh: BoolProperty(
+        name="",
+        description="",
+        default=False
     )
 
 frame = 0
@@ -106,6 +129,7 @@ def my_handler(scene):
 
 if len(bpy.app.handlers.frame_change_pre) > 0:
     bpy.app.handlers.frame_change_pre.clear()
+
 bpy.app.handlers.frame_change_pre.append(my_handler)
 
 if __name__ == "__main__":

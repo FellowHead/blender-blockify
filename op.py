@@ -1,14 +1,14 @@
 import bpy
 import bmesh
+from bpy_extras.io_utils import ExportHelper
 
-from threading import Thread
 from mathutils import Vector
 
 from . blocki import Blockify
 
 
 class BlockifyOperator(bpy.types.Operator):
-    bl_idname = "view3d.blockify"
+    bl_idname = "object.blockify"
     bl_label = "Blockify"
     bl_description = "Turn 'em into bloccs"
 
@@ -26,14 +26,22 @@ class BlockifyOperator(bpy.types.Operator):
         blockSize = Vector(mytool.block_size)
 
         if div:
-            blockSize = Vector((1/blockSize.x, 1/blockSize.y, 1/blockSize.z))
+            blockSize = Vector((
+                1 / blockSize.x,
+                1 / blockSize.y,
+                1 / blockSize.z
+            ))
 
             grid = Blockify.compute_grid(
-                context.evaluated_depsgraph_get().objects["Src"])  # HARDCODED
+                context.evaluated_depsgraph_get().objects[context.object.name])
             Blockify.write_grid_file("grid.fwd", grid)
         else:
             grid = Blockify.read_grid_file("grid.fwd")
-            Blockify.create_mesh(grid, context.object.data)
+            if mytool.overwrite_destination_mesh:
+                mesh = mytool.destination_mesh
+            else:
+                mesh = bpy.data.meshes.new(context.object.name + " blockified")
+            Blockify.create_mesh(grid, mesh)
             context.evaluated_depsgraph_get().update()
 
         # blockify(blockSize=blockSize, precision=precision)

@@ -18,4 +18,15 @@ class BlockifyPanel(bpy.types.Panel):
 
         layout.prop(mytool, "precision", text="Precision")
 
-        layout.operator("view3d.blockify", text="Blockify selected object")
+        layout.prop(mytool, "overwrite_destination_mesh",
+                    text="Overwrite mesh")
+        row = layout.row()
+        row.enabled = mytool.overwrite_destination_mesh
+        row.prop(mytool, "destination_mesh", text="Destination mesh")
+        layout.prop(mytool, "frame_start", text="Start frame")
+        layout.prop(mytool, "frame_end", text="End frame")
+
+        layout.prop(mytool, "cache_path")
+
+        layout.operator("object.blockify",
+                        text="Blockify selected object")

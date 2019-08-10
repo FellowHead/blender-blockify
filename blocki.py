@@ -76,9 +76,9 @@ class Blockify:
                         grid[x][y].append(
                             readData[x * size[1] * size[2] + y * size[2] + z]
                         )
-                        z = z+1
-                    y = y+1
-                x = x+1
+                        z = z + 1
+                    y = y + 1
+                x = x + 1
 
             return BlockGrid(grid, block_size, bounds_min)
 
@@ -115,9 +115,9 @@ class Blockify:
                 while z <= bounds.z:
                     grid[x][y].append(0)
                     # print("added " + str(x) + "," + str(y) + "," + str(z))
-                    z = z+1
-                y = y+1
-            x = x+1
+                    z = z + 1
+                y = y + 1
+            x = x + 1
 
         # subdivide mesh
 
@@ -166,25 +166,25 @@ class Blockify:
 
         def add(off, v1, v2):
             return bm.faces.new([
-                bm.verts.new(off-v1-v2),
-                bm.verts.new(off+v1-v2),
-                bm.verts.new(off+v1+v2),
-                bm.verts.new(off-v1+v2),
+                bm.verts.new(off - v1 - v2),
+                bm.verts.new(off + v1 - v2),
+                bm.verts.new(off + v1 + v2),
+                bm.verts.new(off - v1 + v2),
             ])
 
         def u1(face, i1, i2, b1, b2):
             off = Vector((i1 * b1 % 1.0, i2 * b2 % 1.0))
-            face.loops[0][uv].uv = off+Vector((b1, 0))
-            face.loops[1][uv].uv = off+Vector((b1, b2))
-            face.loops[2][uv].uv = off+Vector((0, b2))
-            face.loops[3][uv].uv = off+Vector((0, 0))
+            face.loops[0][uv].uv = off + Vector((b1, 0))
+            face.loops[1][uv].uv = off + Vector((b1, b2))
+            face.loops[2][uv].uv = off + Vector((0, b2))
+            face.loops[3][uv].uv = off + Vector((0, 0))
 
         def u2(face, i1, i2, b1, b2):
             off = Vector((i1 * b1 % 1.0, i2 * b2 % 1.0))
-            face.loops[0][uv].uv = off+Vector((0, 0))
-            face.loops[1][uv].uv = off+Vector((b1, 0))
-            face.loops[2][uv].uv = off+Vector((b1, b2))
-            face.loops[3][uv].uv = off+Vector((0, b2))
+            face.loops[0][uv].uv = off + Vector((0, 0))
+            face.loops[1][uv].uv = off + Vector((b1, 0))
+            face.loops[2][uv].uv = off + Vector((b1, b2))
+            face.loops[3][uv].uv = off + Vector((0, b2))
 
         # create blockified mesh
 
@@ -224,29 +224,30 @@ class Blockify:
                             z * bs.z
                         )) + grid.bounds_min
 
-                        if e(x+1, y, z):
-                            u2(add(v+vx, vy, vz), y, z, bs.y, bs.z)
-                        if e(x-1, y, z):
-                            u1(add(v-vx, vz, vy), y, z, bs.y, bs.z)
+                        if e(x + 1, y, z):
+                            u2(add(v + vx, vy, vz), y, z, bs.y, bs.z)
+                        if e(x - 1, y, z):
+                            u1(add(v - vx, vz, vy), y, z, bs.y, bs.z)
 
-                        if e(x, y+1, z):
-                            u1(add(v+vy, vz, vx), x, z, bs.x, bs.z)
-                        if e(x, y-1, z):
-                            u2(add(v-vy, vx, vz), x, z, bs.x, bs.z)
+                        if e(x, y + 1, z):
+                            u1(add(v + vy, vz, vx), x, z, bs.x, bs.z)
+                        if e(x, y - 1, z):
+                            u2(add(v - vy, vx, vz), x, z, bs.x, bs.z)
 
-                        if e(x, y, z+1):
-                            u2(add(v+vz, vx, vy), x, y, bs.x, bs.y)
-                        if e(x, y, z-1):
-                            u1(add(v-vz, vy, vx), x, y, bs.x, bs.y)
-                    z = z+1
-                y = y+1
-            x = x+1
+                        if e(x, y, z + 1):
+                            u2(add(v + vz, vx, vy), x, y, bs.x, bs.y)
+                        if e(x, y, z - 1):
+                            u1(add(v - vz, vy, vx), x, y, bs.x, bs.y)
+                    z = z + 1
+                y = y + 1
+            x = x + 1
             # print("Progress: " + str(x / bounds.x))
 
         print("Removing doubles...")
 
-        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=min(bs)/2)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=(min(bs) / 2))
 
         bm.to_mesh(mesh)
+        print("converted to mesh " + str(mesh))
         bm.free()
         print("so guys, we did it")
