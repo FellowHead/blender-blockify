@@ -14,8 +14,6 @@ class BlockGrid:
 
 
 class BlockifIO:
-    cache_path = "/cache"
-
     @staticmethod
     def vector_write(v):
         return f"{v.x},{v.y},{v.z}"
@@ -24,18 +22,9 @@ class BlockifIO:
     def vector_read(s):
         return Vector([float(i) for i in s.split(',')])
 
-    @staticmethod
-    def is_frame_cached(frame):
-        return True  # todo
-
 
 class Blockify:
-
-    # grid file:
-    # - grid size
-    # - grid data
-    # - block size
-    # - boundsMin (& boundsMax)
+    COLLECTION_NAME = "Blockified"
 
     @staticmethod
     def write_grid_file(path, grid):

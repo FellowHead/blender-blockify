@@ -32,7 +32,8 @@ from bpy.types import (
 )
 
 from . op import BlockifyOperator
-from . panel import BlockifyPanel
+from . panel import ObjectBlockifyPanel, GlobalBlockifyPanel
+from . blocki import Blockify
 
 bl_info = {
     "name": "blockify",
@@ -46,23 +47,53 @@ bl_info = {
 }
 
 
-class MySettings(PropertyGroup):
+class ObjectSettings(PropertyGroup):
+    enabled: BoolProperty(
+        name="Enable/Disable",
+        description="Toggle wether to use Blockify on this object",
+        default=False
+    )
+
     block_size: FloatVectorProperty(
         name="Block size",
         description="Configure the block size",
         default=Vector((1, 1, 1))
     )
 
+    divide_by_vector: BoolProperty(
+        name="Divide by vector",
+        description="Use (1.0 / [block size]) as actual size",
+        default=False
+    )
+
+    override_block_size: BoolProperty(
+        name="Override block size",
+        description="duh",
+        default=True
+    )
+
     precision: IntProperty(
         name="Precision",
-        description="""
-            Amount of pre-subdivisions.
-            Increase this value if you happen to find holes
-            in the blockified mesh
-        """,
+        description="""Amount of pre-subdivisions.
+Increase this value if you happen to find holes in the blockified mesh""",
         default=0,
         min=0,
         max=10
+    )
+
+    cache_path: StringProperty(
+        name="Cache path",
+        description="",
+        default="/cache",
+        subtype='DIR_PATH'
+    )
+
+
+class GlobalSettings(PropertyGroup):
+    block_size: FloatVectorProperty(
+        name="Block size",
+        description="Configure the block size",
+        default=Vector((1, 1, 1))
     )
 
     divide_by_vector: BoolProperty(
@@ -90,12 +121,6 @@ class MySettings(PropertyGroup):
         default=250
     )
 
-    destination_mesh: PointerProperty(
-        name="lol",
-        description="later",
-        type=bpy.types.Mesh
-    )
-
     overwrite_destination_mesh: BoolProperty(
         name="",
         description="",
@@ -105,27 +130,39 @@ class MySettings(PropertyGroup):
 frame = 0
 
 
-def register():
-    print("register")
-    frame = 0
-    bpy.utils.register_class(BlockifyOperator)
-    bpy.utils.register_class(BlockifyPanel)
-    bpy.utils.register_class(MySettings)
-    bpy.types.Scene.blockify = PointerProperty(type=MySettings)
-
-
-def unregister():
-    bpy.utils.unregister_class(BlockifyOperator)
-    bpy.utils.unregister_class(BlockifyPanel)
-    bpy.utils.unregister_class(MySettings)
-    del bpy.types.Scene.blockify
-
-
 def my_handler(scene):
     global frame
     if frame != scene.frame_current:
         frame = scene.frame_current
         print("Frame Change", scene.frame_current)
+        if Blockify.COLLECTION_NAME in bpy.data.collections:
+            for obj in bpy.data.collections[Blockify.COLLECTION_NAME].objects:
+                if obj.visible_get():
+                    mesh_name = obj.name + "_" + str(frame)
+                    if mesh_name in bpy.data.meshes:
+                        obj.data = bpy.data.meshes[mesh_name]
+
+
+def register():
+    print("register")
+    frame = 0
+    bpy.utils.register_class(BlockifyOperator)
+    bpy.utils.register_class(ObjectBlockifyPanel)
+    bpy.utils.register_class(GlobalBlockifyPanel)
+    bpy.utils.register_class(ObjectSettings)
+    bpy.utils.register_class(GlobalSettings)
+    bpy.types.Object.blockify = PointerProperty(type=ObjectSettings)
+    bpy.types.Scene.blockify = PointerProperty(type=GlobalSettings)
+
+
+def unregister():
+    bpy.utils.unregister_class(BlockifyOperator)
+    bpy.utils.unregister_class(ObjectBlockifyPanel)
+    bpy.utils.unregister_class(GlobalBlockifyPanel)
+    bpy.utils.unregister_class(ObjectSettings)
+    bpy.utils.unregister_class(GlobalSettings)
+    del bpy.types.Object.blockify
+    del bpy.types.Scene.blockify
 
 if len(bpy.app.handlers.frame_change_pre) > 0:
     bpy.app.handlers.frame_change_pre.clear()
