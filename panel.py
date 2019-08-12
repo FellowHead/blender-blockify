@@ -27,7 +27,11 @@ class ObjectBlockifyPanel(bpy.types.Panel):
             blk_glo = context.scene.blockify
 
             if blk_obj.enabled:
-                layout.prop(blk_obj, "material", text="Material")
+                layout.prop(blk_obj, "mat_main", text="Material")
+                mats = layout.box()
+                mats.prop(blk_obj, "mat_top", text="Top")
+                mats.prop(blk_obj, "mat_side", text="Side")
+                mats.prop(blk_obj, "mat_bottom", text="Bottom")
 
                 layout.separator()
 

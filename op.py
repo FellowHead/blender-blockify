@@ -102,8 +102,27 @@ class BlockifyOperator(bpy.types.Operator):
                     mesh.materials.clear()
                 else:
                     mesh = bpy.data.meshes.new(name)
-                mesh.materials.append(blk_obj.material)
-                Blockify.create_mesh(self.grid, mesh)
+                mesh.materials.append(blk_obj.mat_main)
+                m_top = 0
+                m_side = 0
+                m_bottom = 0
+                i = 0
+                if blk_obj.mat_top is not None:
+                    mesh.materials.append(blk_obj.mat_top)
+                    i = i + 1
+                    m_top = i
+                if blk_obj.mat_side is not None:
+                    mesh.materials.append(blk_obj.mat_side)
+                    i = i + 1
+                    m_side = i
+                if blk_obj.mat_bottom is not None:
+                    mesh.materials.append(blk_obj.mat_bottom)
+                    i = i + 1
+                    m_bottom = i
+                Blockify.create_mesh(self.grid, mesh,
+                                     mat_top=m_top,
+                                     mat_side=m_side,
+                                     mat_bottom=m_bottom)
 
                 name = "zzz_" + obj.name
                 if name not in self.coll.objects:

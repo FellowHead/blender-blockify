@@ -144,7 +144,7 @@ class Blockify:
         return BlockGrid(grid, block_size, bounds_min)
 
     @staticmethod
-    def create_mesh(grid, mesh):
+    def create_mesh(grid, mesh, mat_top=0, mat_side=0, mat_bottom=0):
         bm = bmesh.new()
 
         bounds = Vector((
@@ -174,6 +174,10 @@ class Blockify:
             face.loops[1][uv].uv = off + Vector((b1, 0))
             face.loops[2][uv].uv = off + Vector((b1, b2))
             face.loops[3][uv].uv = off + Vector((0, b2))
+
+        def m(face, mi):
+            face.material_index = mi
+            return face
 
         # create blockified mesh
 
@@ -214,19 +218,25 @@ class Blockify:
                         )) + grid.bounds_min
 
                         if e(x + 1, y, z):
-                            u2(add(v + vx, vy, vz), y, z, bs.y, bs.z)
+                            u2(m(add(v + vx, vy, vz), mat_side),
+                                y, z, bs.y, bs.z)
                         if e(x - 1, y, z):
-                            u1(add(v - vx, vz, vy), y, z, bs.y, bs.z)
+                            u1(m(add(v - vx, vz, vy), mat_side),
+                                y, z, bs.y, bs.z)
 
                         if e(x, y + 1, z):
-                            u1(add(v + vy, vz, vx), x, z, bs.x, bs.z)
+                            u1(m(add(v + vy, vz, vx), mat_side),
+                                x, z, bs.x, bs.z)
                         if e(x, y - 1, z):
-                            u2(add(v - vy, vx, vz), x, z, bs.x, bs.z)
+                            u2(m(add(v - vy, vx, vz), mat_side),
+                                x, z, bs.x, bs.z)
 
                         if e(x, y, z + 1):
-                            u2(add(v + vz, vx, vy), x, y, bs.x, bs.y)
+                            u2(m(add(v + vz, vx, vy), mat_top),
+                                x, y, bs.x, bs.y)
                         if e(x, y, z - 1):
-                            u1(add(v - vz, vy, vx), x, y, bs.x, bs.y)
+                            u1(m(add(v - vz, vy, vx), mat_bottom),
+                                x, y, bs.x, bs.y)
                     z = z + 1
                 y = y + 1
             x = x + 1

@@ -81,7 +81,25 @@ Increase this value if you happen to find holes in the blockified mesh""",
         max=10
     )
 
-    material: PointerProperty(
+    mat_main: PointerProperty(
+        name="Material",
+        description="",
+        type=bpy.types.Material
+    )
+
+    mat_top: PointerProperty(
+        name="Material",
+        description="",
+        type=bpy.types.Material
+    )
+
+    mat_side: PointerProperty(
+        name="Material",
+        description="",
+        type=bpy.types.Material
+    )
+
+    mat_bottom: PointerProperty(
         name="Material",
         description="",
         type=bpy.types.Material
