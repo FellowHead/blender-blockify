@@ -38,11 +38,15 @@ class BlockifyOperator(bpy.types.Operator):
         self.frame = context.scene.blockify.frame_start - 1
         self.obj = len(self.valid_objects)
 
+        if self.obj == 0:
+            print("No objects to blockify")
+            return {'FINISHED'}
+
         # clear old meshes
 
         rm = []
         for mesh in bpy.data.meshes:
-            if mesh.users == 0:  # TODO: only perform on my meshes?
+            if mesh.users == 0 and mesh.name.startswith("zzz_"):
                 rm.append(mesh)
         for mesh in rm:
             bpy.data.meshes.remove(mesh)
@@ -92,8 +96,10 @@ class BlockifyOperator(bpy.types.Operator):
                 name = "zzz_" + obj.name + "_" + str(self.frame)
                 if name in bpy.data.meshes:
                     mesh = bpy.data.meshes[name]
+                    mesh.materials.clear()
                 else:
                     mesh = bpy.data.meshes.new(name)
+                mesh.materials.append(blk_obj.material)
                 Blockify.create_mesh(self.grid, mesh)
 
                 name = "zzz_" + obj.name

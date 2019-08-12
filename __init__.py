@@ -81,11 +81,10 @@ Increase this value if you happen to find holes in the blockified mesh""",
         max=10
     )
 
-    cache_path: StringProperty(
-        name="Cache path",
+    material: PointerProperty(
+        name="Material",
         description="",
-        default="/cache",
-        subtype='DIR_PATH'
+        type=bpy.types.Material
     )
 
 
@@ -119,12 +118,6 @@ class GlobalSettings(PropertyGroup):
         name="End frame",
         description="The frame to end the bake at",
         default=250
-    )
-
-    overwrite_destination_mesh: BoolProperty(
-        name="",
-        description="",
-        default=False
     )
 
 frame = 0

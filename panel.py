@@ -27,6 +27,10 @@ class ObjectBlockifyPanel(bpy.types.Panel):
             blk_glo = context.scene.blockify
 
             if blk_obj.enabled:
+                layout.prop(blk_obj, "material", text="Material")
+
+                layout.separator()
+
                 layout.label(text="Block size:")
                 layout.prop(blk_obj, "override_block_size",
                             text="Override")
@@ -37,11 +41,10 @@ class ObjectBlockifyPanel(bpy.types.Panel):
 
                 col.prop(blk, "block_size", text="")
                 col.prop(blk, "divide_by_vector", text="Invert")
+
                 layout.separator()
 
-                layout.label(text="Precision:")
-
-                layout.prop(blk_obj, "precision", text="")
+                layout.prop(blk_obj, "precision", text="Precision")
         else:
             layout.label(text="Can't blockify inside Blockified collection",
                          icon='ERROR')
