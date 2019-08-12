@@ -120,7 +120,8 @@ class BlockifyOperator(bpy.types.Operator):
                                      mat_x_p=oof(blk_obj.mat_x_positive),
                                      mat_x_n=oof(blk_obj.mat_x_negative),
                                      mat_y_p=oof(blk_obj.mat_y_positive),
-                                     mat_y_n=oof(blk_obj.mat_y_negative))
+                                     mat_y_n=oof(blk_obj.mat_y_negative),
+                                     uv_option=blk_obj.uv_option)
 
                 name = "zzz_" + obj.name
                 if name not in self.coll.objects:

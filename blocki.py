@@ -144,7 +144,7 @@ class Blockify:
         return BlockGrid(grid, block_size, bounds_min)
 
     @staticmethod
-    def create_mesh(grid, mesh,
+    def create_mesh(grid, mesh, uv_option=False,
                     mat_top=0, mat_bottom=0,
                     mat_x_p=0, mat_x_n=0,
                     mat_y_p=0, mat_y_n=0):
@@ -165,18 +165,30 @@ class Blockify:
             ])
 
         def u1(face, i1, i2, b1, b2):
-            off = Vector((i1 * b1 % 1.0, i2 * b2 % 1.0))
-            face.loops[0][uv].uv = off + Vector((b1, 0))
-            face.loops[1][uv].uv = off + Vector((b1, b2))
-            face.loops[2][uv].uv = off + Vector((0, b2))
-            face.loops[3][uv].uv = off + Vector((0, 0))
+            if not uv_option:
+                face.loops[0][uv].uv = Vector((1, 0))
+                face.loops[1][uv].uv = Vector((1, 1))
+                face.loops[2][uv].uv = Vector((0, 1))
+                face.loops[3][uv].uv = Vector((0, 0))
+            else:
+                off = Vector((i1 * b1 % 1.0, i2 * b2 % 1.0))
+                face.loops[0][uv].uv = off + Vector((b1, 0))
+                face.loops[1][uv].uv = off + Vector((b1, b2))
+                face.loops[2][uv].uv = off + Vector((0, b2))
+                face.loops[3][uv].uv = off + Vector((0, 0))
 
         def u2(face, i1, i2, b1, b2):
-            off = Vector((i1 * b1 % 1.0, i2 * b2 % 1.0))
-            face.loops[0][uv].uv = off + Vector((0, 0))
-            face.loops[1][uv].uv = off + Vector((b1, 0))
-            face.loops[2][uv].uv = off + Vector((b1, b2))
-            face.loops[3][uv].uv = off + Vector((0, b2))
+            if not uv_option:
+                face.loops[0][uv].uv = Vector((0, 0))
+                face.loops[1][uv].uv = Vector((1, 0))
+                face.loops[2][uv].uv = Vector((1, 1))
+                face.loops[3][uv].uv = Vector((0, 1))
+            else:
+                off = Vector((i1 * b1 % 1.0, i2 * b2 % 1.0))
+                face.loops[0][uv].uv = off + Vector((0, 0))
+                face.loops[1][uv].uv = off + Vector((b1, 0))
+                face.loops[2][uv].uv = off + Vector((b1, b2))
+                face.loops[3][uv].uv = off + Vector((0, b2))
 
         def m(face, mi):
             face.material_index = mi

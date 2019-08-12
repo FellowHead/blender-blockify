@@ -49,7 +49,7 @@ bl_info = {
 
 class ObjectSettings(PropertyGroup):
     enabled: BoolProperty(
-        name="Enable/Disable",
+        name="Enable / Disable blockification",
         description="Toggle wether to use Blockify on this object",
         default=False
     )
@@ -79,6 +79,12 @@ Increase this value if you happen to find holes in the blockified mesh""",
         default=0,
         min=0,
         max=10
+    )
+
+    uv_option: BoolProperty(
+        name="UV option",
+        description="""I don't even know how to describe this.""",
+        default=False,
     )
 
     mat_main: PointerProperty(

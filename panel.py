@@ -37,6 +37,8 @@ class ObjectBlockifyPanel(bpy.types.Panel):
                 mats.prop(blk_obj, "mat_y_positive", text="Y+")
                 mats.prop(blk_obj, "mat_y_negative", text="Y-")
 
+                layout.prop(blk_obj, "uv_option", text="UV option")
+
                 layout.separator()
 
                 layout.label(text="Block size:")
