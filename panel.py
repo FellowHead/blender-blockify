@@ -67,7 +67,7 @@ class GlobalBlockifyPanel(bpy.types.Panel):
         col.prop(mytool, "frame_start", text="Start frame")
         col.prop(mytool, "frame_end", text="End frame")
 
-        col.prop(mytool, "cache_path")
+        # col.prop(mytool, "cache_path")
 
         layout.operator("scene.run_blockify",
                         text="Blockify")

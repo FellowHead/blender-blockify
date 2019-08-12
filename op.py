@@ -32,7 +32,8 @@ class BlockifyOperator(bpy.types.Operator):
 
         for obj in context.scene.objects:
             blk_obj = obj.blockify
-            if blk_obj.enabled and self.coll not in obj.users_collection:
+            if ((blk_obj.enabled and obj.visible_get() and
+                 self.coll not in obj.users_collection)):
                 self.valid_objects.append(obj)
 
         self.frame = context.scene.blockify.frame_start - 1
@@ -59,6 +60,7 @@ class BlockifyOperator(bpy.types.Operator):
 
     def modal(self, context, event):
         if event.type in {'RIGHTMOUSE', 'ESC'}:
+            print("Cancelling blockification...")
             self.cancel(context)
             return {'FINISHED'}
 
@@ -90,8 +92,9 @@ class BlockifyOperator(bpy.types.Operator):
                         1 / block_size.z
                     ))
 
-                self.grid = Blockify.compute_grid(
-                    self.dg.objects[obj.name])
+                self.grid = Blockify.compute_grid(self.dg.objects[obj.name],
+                                                  block_size=block_size,
+                                                  precision=precision)
             else:
                 name = "zzz_" + obj.name + "_" + str(self.frame)
                 if name in bpy.data.meshes:
@@ -105,6 +108,8 @@ class BlockifyOperator(bpy.types.Operator):
                 name = "zzz_" + obj.name
                 if name not in self.coll.objects:
                     self.coll.objects.link(bpy.data.objects.new(name, mesh))
+                else:
+                    bpy.data.objects[name].data = mesh
                 self.grid = None
                 self.obj = self.obj + 1
 
