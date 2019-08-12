@@ -79,5 +79,8 @@ class GlobalBlockifyPanel(bpy.types.Panel):
 
         # col.prop(mytool, "cache_path")
 
+        count = len(Blockify.valid_objects(context.scene))
+        suffix = "" if count == 1 else "s"
+
         layout.operator("scene.run_blockify",
-                        text="Blockify")
+                        text=f"Blockify {count} object{suffix}")

@@ -72,6 +72,18 @@ class Blockify:
             return BlockGrid(grid, block_size, bounds_min)
 
     @staticmethod
+    def valid_objects(scene):
+        valid = []
+        for obj in scene.objects:
+            blk_obj = obj.blockify
+            if ((blk_obj.enabled and obj.visible_get() and
+                 (Blockify.COLLECTION_NAME not in bpy.data.collections or
+                  bpy.data.collections[Blockify.COLLECTION_NAME]
+                  not in obj.users_collection))):
+                valid.append(obj)
+        return valid
+
+    @staticmethod
     def compute_grid(deps_obj, block_size=Vector((1, 1, 1)), precision=0):
         C = bpy.context
         D = bpy.data

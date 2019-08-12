@@ -29,13 +29,7 @@ class BlockifyOperator(bpy.types.Operator):
         else:
             self.coll = bpy.data.collections[Blockify.COLLECTION_NAME]
 
-        self.valid_objects = []
-
-        for obj in context.scene.objects:
-            blk_obj = obj.blockify
-            if ((blk_obj.enabled and obj.visible_get() and
-                 self.coll not in obj.users_collection)):
-                self.valid_objects.append(obj)
+        self.valid_objects = Blockify.valid_objects(context.scene)
 
         self.frame = context.scene.blockify.frame_start - 1
         self.obj = len(self.valid_objects)
