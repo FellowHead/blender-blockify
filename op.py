@@ -59,14 +59,13 @@ class BlockifyOperator(bpy.types.Operator):
             return {'FINISHED'}
 
         if event.type == 'TIMER':
-            print("oof")
             blk_glo = context.scene.blockify
 
             if self.obj >= len(self.valid_objects):
                 self.obj = 0
                 self.frame = self.frame + 1
                 if self.frame > blk_glo.frame_end:
-                    print("damn son")
+                    print("DONE ALL FRAMES")
                     self.cancel(context)
                     return {'FINISHED'}
                 context.scene.frame_set(self.frame)

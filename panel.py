@@ -11,13 +11,18 @@ class ObjectBlockifyPanel(bpy.types.Panel):
     bl_context = "modifier"
 
     def draw_header(self, context):
-        self.layout.prop(context.object.blockify, "enabled", text="")
+        if not self.is_blocki(context):
+            self.layout.prop(context.object.blockify, "enabled", text="")
+
+    @staticmethod
+    def is_blocki(context):
+        return (Blockify.COLLECTION_NAME in bpy.data.collections and
+                bpy.data.collections[Blockify.COLLECTION_NAME]
+                in context.object.users_collection)
 
     def draw(self, context):
         layout = self.layout
-        if ((Blockify.COLLECTION_NAME not in bpy.data.collections or
-             bpy.data.collections[Blockify.COLLECTION_NAME]
-             in context.object.users_collection)):
+        if not self.is_blocki(context):
             blk_obj = context.object.blockify
             blk_glo = context.scene.blockify
 
@@ -38,7 +43,8 @@ class ObjectBlockifyPanel(bpy.types.Panel):
 
                 layout.prop(blk_obj, "precision", text="")
         else:
-            layout.alert = True
+            layout.label(text="Can't blockify inside Blockified collection",
+                         icon='ERROR')
 
 
 class GlobalBlockifyPanel(bpy.types.Panel):
