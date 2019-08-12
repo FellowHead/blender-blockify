@@ -144,7 +144,10 @@ class Blockify:
         return BlockGrid(grid, block_size, bounds_min)
 
     @staticmethod
-    def create_mesh(grid, mesh, mat_top=0, mat_side=0, mat_bottom=0):
+    def create_mesh(grid, mesh,
+                    mat_top=0, mat_bottom=0,
+                    mat_x_p=0, mat_x_n=0,
+                    mat_y_p=0, mat_y_n=0):
         bm = bmesh.new()
 
         bounds = Vector((
@@ -218,17 +221,17 @@ class Blockify:
                         )) + grid.bounds_min
 
                         if e(x + 1, y, z):
-                            u2(m(add(v + vx, vy, vz), mat_side),
+                            u2(m(add(v + vx, vy, vz), mat_x_p),
                                 y, z, bs.y, bs.z)
                         if e(x - 1, y, z):
-                            u1(m(add(v - vx, vz, vy), mat_side),
+                            u1(m(add(v - vx, vz, vy), mat_x_n),
                                 y, z, bs.y, bs.z)
 
                         if e(x, y + 1, z):
-                            u1(m(add(v + vy, vz, vx), mat_side),
+                            u1(m(add(v + vy, vz, vx), mat_y_p),
                                 x, z, bs.x, bs.z)
                         if e(x, y - 1, z):
-                            u2(m(add(v - vy, vx, vz), mat_side),
+                            u2(m(add(v - vy, vx, vz), mat_y_n),
                                 x, z, bs.x, bs.z)
 
                         if e(x, y, z + 1):

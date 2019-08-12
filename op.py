@@ -18,6 +18,7 @@ class BlockifyOperator(bpy.types.Operator):
     frame = 0
     dg = None
     coll = None
+    i = 0
 
     def execute(self, context):
         self.grid = None
@@ -103,26 +104,23 @@ class BlockifyOperator(bpy.types.Operator):
                 else:
                     mesh = bpy.data.meshes.new(name)
                 mesh.materials.append(blk_obj.mat_main)
-                m_top = 0
-                m_side = 0
-                m_bottom = 0
-                i = 0
-                if blk_obj.mat_top is not None:
-                    mesh.materials.append(blk_obj.mat_top)
-                    i = i + 1
-                    m_top = i
-                if blk_obj.mat_side is not None:
-                    mesh.materials.append(blk_obj.mat_side)
-                    i = i + 1
-                    m_side = i
-                if blk_obj.mat_bottom is not None:
-                    mesh.materials.append(blk_obj.mat_bottom)
-                    i = i + 1
-                    m_bottom = i
+
+                self.i = 0
+
+                def oof(blk_obj_mat):
+                    if blk_obj_mat is not None:
+                        mesh.materials.append(blk_obj_mat)
+                        self.i = self.i + 1
+                        return self.i
+                    return 0
+
                 Blockify.create_mesh(self.grid, mesh,
-                                     mat_top=m_top,
-                                     mat_side=m_side,
-                                     mat_bottom=m_bottom)
+                                     mat_top=oof(blk_obj.mat_top),
+                                     mat_bottom=oof(blk_obj.mat_bottom),
+                                     mat_x_p=oof(blk_obj.mat_x_positive),
+                                     mat_x_n=oof(blk_obj.mat_x_negative),
+                                     mat_y_p=oof(blk_obj.mat_y_positive),
+                                     mat_y_n=oof(blk_obj.mat_y_negative))
 
                 name = "zzz_" + obj.name
                 if name not in self.coll.objects:

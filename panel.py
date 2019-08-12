@@ -30,8 +30,12 @@ class ObjectBlockifyPanel(bpy.types.Panel):
                 layout.prop(blk_obj, "mat_main", text="Material")
                 mats = layout.box()
                 mats.prop(blk_obj, "mat_top", text="Top")
-                mats.prop(blk_obj, "mat_side", text="Side")
                 mats.prop(blk_obj, "mat_bottom", text="Bottom")
+                mats.separator()
+                mats.prop(blk_obj, "mat_x_positive", text="X+")
+                mats.prop(blk_obj, "mat_x_negative", text="X-")
+                mats.prop(blk_obj, "mat_y_positive", text="Y+")
+                mats.prop(blk_obj, "mat_y_negative", text="Y-")
 
                 layout.separator()
 
